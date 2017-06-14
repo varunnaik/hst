@@ -1,0 +1,17 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "Homescript test",
+  "main": "index.js",
+  "scripts": {
+    "test": ""
+  },
+  "author": "Varun Naik",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.15.3",
+    "oauth": "^0.9.15",
+    "request": "^2.81.0",
+    "sqlite3": "^3.1.8"
+  }
+}

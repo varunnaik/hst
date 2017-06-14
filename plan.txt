@@ -1,0 +1,28 @@
+Determine how to get image intelligence docs
+Send each image upstream
+Get the responses
+Collate them and store them in a database
+
+
+Set up a basic express project
+Create an endpoint for results
+Create a server to send images upstream
+Create a database to hold partial results
+
+Can call and process new images as long as they are in the future?
+- will all new images be in the future?
+- timestamp timezones?
+- detection parameters: go with defaults?
+
+On page load dump db as JSON
+
+On the client, open each JSON and construct the bar graph.
+
+
+{
+    url: pathtoimage,
+    timestamp: timestamp,
+    personDetected: boolean
+}
+
+
