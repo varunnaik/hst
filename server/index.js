@@ -4,17 +4,23 @@ const app = express()
 const sqlite3 = require('sqlite3').verbose()
 const db = new sqlite3.Database('data/homescript_test_db')
 
-var fs = require('fs'); // Read CSV files
+const fs = require('fs'); // Read CSV files
 
-var http = require('http'); // For ImageIntelligence API
-var request = require('request');
+// For ImageIntelligence API
+const request = require('request');
 
+const uuidV4 = require('uuid/v4');
+
+
+////////////////////////////////////////////////////////////////////////
 let accessToken = null;
+let pendingRequests = []
+let pendingRequestHandle = null;
 
 // Create a database if one does not already exist
 db.serialize(function() {
     db.run('CREATE TABLE IF NOT EXISTS images (guid TEXT, url TEXT, date TEXT, persondetected INTEGER)');
-    db.run('CREATE TABLE IF NOT EXISTS jobs (id INTEGER, date TEXT)');
+    db.run('CREATE TABLE IF NOT EXISTS jobs (id INTEGER, completed INTEGER)');
 });
 
 let requestPersonDetection = function(imageList) {
@@ -25,9 +31,22 @@ let requestPersonDetection = function(imageList) {
         }
     });
     
-    // Make request
+    const jobId = uuidV4();
     
-    // Store response Job id in jobs db
+    // Make request
+    request.post(
+    'https://api.imageintelligence.com/v1/find-person',
+    { json: {
+      "items": images,      
+      "customId": jobId
+    } },
+    function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            pendingRequests
+        }
+    }
+    )
+    
     
 }
 
@@ -83,24 +102,25 @@ let startup = function() {
     
 }
 
+let getAccessToken = function (callback) {
+    request.post(
+        'https://api.imageintelligence.com/v1/oauth/token',
+        { json: {
+            "clientId": "bc1DhUbNEwkT5hO9aUArzYQp3a8DzIv4",
+            "clientSecret": "QUU84ppIAWeMSO5mMxAc1fADQtJjcWjkhHHxdo5z5zMOKZQmUlgd5P7GI8NU49s7"
+        }},
+        function (error, response, body) {
+            if (!error && response.statusCode == 200) {
+                accessToken = body.accessToken;
+                callback();
+            } else {
+                throw error;
+            }
+        }
+    ); 
+}
 
-request({
-  url: 'https://api.imageintelligence.com/v1/oauth/token',
-  method: 'POST',
-  auth: {
-    clientId: 'bc1DhUbNEwkT5hO9aUArzYQp3a8DzIv4',
-    clientSecret: 'QUU84ppIAWeMSO5mMxAc1fADQtJjcWjkhHHxdo5z5zMOKZQmUlgd5P7GI8NU49s7'
-  },
-  form: {
-    'grant_type': 'client_credentials'
-  }
-}, function(err, res) {
-  var json = JSON.parse(res.body);
-  console.log("Access Token:", json);
-  accessToken = json.access_token;
-  startup();
-});
-
+getAccessToken(startup);
 
 app.get('/', function (req, res) {
   // Get all the data in the database and update it all
